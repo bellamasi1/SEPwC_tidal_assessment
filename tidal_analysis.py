@@ -2,18 +2,43 @@
 
 # import the modules you need here
 import argparse
+import os 
+import datetime
+import pandas as pd 
+import numpy as np
+
 
 def read_tidal_data(filename):
+    # throw error if file does not exist 
+    if not os.path.exists(filename):
+        raise FileNotFoundError(f"No such file: {filename}")
 
-    return 0
+
+
+
+  
+
+
+
+
+  return 0
     
 def extract_single_year_remove_mean(year, data):
-   
+  
+    
+  
+    
+  
+    
 
     return 
 
 
 def extract_section_remove_mean(start, end, data):
+
+
+
+
 
 
     return 
