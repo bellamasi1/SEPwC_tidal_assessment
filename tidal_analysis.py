@@ -59,24 +59,27 @@ def read_tidal_data(filename):
     
 
 def extract_single_year_remove_mean(year, data):
-  
-    
-
-    return 
-
+      
+    return
 
 def extract_section_remove_mean(start, end, data):
-
-
 
     return 
 
 
 def join_data(data1, data2):
+    
+    # join the two DataFrame objects together 
+    # sort by the index which will be the datetime field
+    # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.concat.html
 
-    return 
+    # concatenate the two objects, this returns a copy by default but is not a deep copy
+        df = pd.concat([data1, data2])
 
+    # re-sort the combined DataFrame by its DateTimeIndex
+        df.sort_index(inplace=True)
 
+        return df
 
 def sea_level_rise(data):
 
