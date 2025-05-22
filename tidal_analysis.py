@@ -12,22 +12,53 @@ def read_tidal_data(filename):
     # throw error if file does not exist 
     if not os.path.exists(filename):
         raise FileNotFoundError(f"No such file: {filename}")
-
-
-
-
-  
-
-
-
-
-  return 0
     
+    # define collumn names  
+    column_names = ["Cycle","Date", "Time", "Sea Level", "Residual"]
+
+    # lines 20-25 code taken from gemini
+    try:
+        # read the data using pandas.read_csv.
+        data = pd.read_csv(
+            filename,
+            header=None,              # tells pandas there are no headers 
+            names=column_names,       # tells pandas to use your list to name the columns.
+            skiprows=list(range(11)),
+            sep=r"\s+",
+            )
+        na_values=['M', 'N', 'T'] # this converts 'M', 'N', 'T' to NaN.
+        
+        # code from gemini 
+        print(data.head()) 
+
+        # convert datetime fields in a pd.datetime and ignore errors
+        data["Time"] = pd.to_datetime(
+            data["Date"] + " " + data["Time"], errors="coerce"
+        )
+        # convert Sea Level to string 
+        data["Sea Level"] = data["Sea Level"].astype(str)
+        # remove base data entries from Sea Level field using regular expression
+        data["Sea Level"] = data["Sea Level"].replace(
+            to_replace=r".*[MT]$", value=np.nan, regex=True
+        )
+        # remove bad N data enteries
+        data["Sea Level"] = data["Sea Level"].replace("-99.0000N", np.nan)
+        # convert Sea Level to a float
+        data["Sea Level"] = pd.to_numeric(data["Sea Level"], errors="coerce")
+        # return Time and Sea Level fields into the DataFrame
+        data = data[["Time", "Sea Level"]]
+        # set the DateTime field as an index but don't drop the Time field as it is 
+        # required in a test.
+        data.set_index("Time", inplace=True, drop=False)     
+
+        # lines 54-57 code taken from gemini 
+        return data                                                                
+    except Exception as e:          
+        # catch any other general errors that might occur during file reading
+        raise RuntimeError(f"An unexpected error occurred while reading tidal data from {filename}: {e}") from e
+    
+
 def extract_single_year_remove_mean(year, data):
-  
-    
-  
-    
   
     
 
@@ -35,9 +66,6 @@ def extract_single_year_remove_mean(year, data):
 
 
 def extract_section_remove_mean(start, end, data):
-
-
-
 
 
 
