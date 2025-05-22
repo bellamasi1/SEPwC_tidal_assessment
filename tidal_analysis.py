@@ -59,11 +59,19 @@ def read_tidal_data(filename):
     
 
 def extract_single_year_remove_mean(year, data):
-      
-    return
+        
+    # lines 64-71 code taken from https://jhill1.github.io/SEPwC.github.io/tides_python.html
+    year_string_start = str(year)+"0101"
+    year_string_end = str(year)+"1231"
+    year_data = data.loc[year_string_start:year_string_end, ["Sea Level"]]
+    # remove mean to oscillate around zero
+    mmm = np.mean(year_data["Sea Level"])
+    year_data["Sea Level"] -= mmm
+     
+    return year_data
 
 def extract_section_remove_mean(start, end, data):
-
+   
     return 
 
 
