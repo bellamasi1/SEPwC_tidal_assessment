@@ -51,7 +51,7 @@ def read_tidal_data(filename):
         # required in a test.
         data.set_index("Time", inplace=True, drop=False)     
 
-        # lines 54-57 code taken from gemini 
+        # lines 55-58 code taken from gemini 
         return data                                                                
     except Exception as e:          
         # catch any other general errors that might occur during file reading
@@ -70,9 +70,19 @@ def extract_single_year_remove_mean(year, data):
      
     return year_data
 
+
 def extract_section_remove_mean(start, end, data):
-   
-    return 
+    # lines 76-85 from gemini 
+    # extract specific section of the data
+    section = data.loc[start:end, ["Sea Level"]].copy()
+
+    # calculate the mean of the 'Sea Level' data within the extracted section 
+    mean_sea_level = np.mean(section["Sea Level"])
+
+    # remove calculated mean from the 'Sea Level' data 
+    section["Sea Level"] -= mean_sea_level
+
+    return section
 
 
 def join_data(data1, data2):
