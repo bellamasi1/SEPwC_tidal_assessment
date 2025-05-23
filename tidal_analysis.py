@@ -6,7 +6,8 @@ import os
 import datetime
 import pandas as pd 
 import numpy as np
-
+import pytz
+import uptide 
 
 def read_tidal_data(filename):
     # throw error if file does not exist 
@@ -99,21 +100,46 @@ def join_data(data1, data2):
 
         return df
 
+
 def sea_level_rise(data):
 
                                                      
     return 
 
+
 def tidal_analysis(data, constituents, start_datetime):
+    # https://jhill1.github.io/SEPwC.github.io/tides_python.html information used 
+    # for working out the correct tidal analysis values
+    
+    # put DataFrame index to UTC (GMT) timezone 
+    data.index = data.index.tz_localize("UTC")
 
+    # create a Tides object with a list of the consituents we want
+    tide = uptide.Tides(constituents)
 
-    return 
+    # set a start time for the uptide model 
+    tide.set_initial_time(start_datetime)
+
+    # remove rows with NaN values from data as tides
+    data.dropna(subset=["Sea Level"], inplace=True)
+   
+    # convert DateTime index into seconds 
+    seconds_since = (
+        data.index.astype("int64").to_numpy() / 1e9
+    ) - start_datetime.timestamp()
+
+    amp, pha = uptide.harmonic_analysis(
+        tide, data["Sea Level"].to_numpy(), seconds_since
+    )
+
+    return amp, pha
+
 
 def get_longest_contiguous_data(data):
-
-
-    return 
-
+        
+        return 
+    
+    
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
