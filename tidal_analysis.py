@@ -7,12 +7,14 @@ This script processes and analyses tidal data using python functions
 # import the modules you need here
 import argparse
 import os
+import glob
 import datetime
 import pandas as pd
 import numpy as np
 from scipy import stats
 import pytz
 import uptide
+from tabulate import tabulate 
 
 def read_tidal_data(filename):
     """
@@ -242,52 +244,59 @@ def tidal_analysis(data, constituents, start_datetime):
 
 def get_longest_contiguous_data(data):
     """
-    Identifies and returns the longest contiguous block of non NaN data.
+    Identifies and returns the longest contiguous block of non-NaN rows in a DataFrame. 
+    
+    This method has been generated from Gemini 
 
-    This function processes a pandas Series or DataFrame to find the longest
-    sequence of consecutive non-null (non-NaN) values
     Args:
-        data (pd.Series or pd.DataFrame): The input data, which can be a pandas Series
-                                         or DataFrame. The function will operate on
-                                         the non-null status of the data.
+        data (pd.DataFrame): The input DataFrame.
 
     Returns:
-        pd.Series or pd.DataFrame: The longest contiguous block of non-NaN data
-                               from the input. Returns an empty Series/DataFrame
-                               if no non-NaN data is found.
+        pd.DataFrame: The longest contiguous block of rows where all values are non-NaN.
+                      Returns an empty DataFrame if no such block exists.
     """
-    # lines 260-275 code from gemini
-    # handle empty input data
+    if not isinstance(data, pd.DataFrame):
+        raise TypeError("Input must be a pandas DataFrame")
+
     if data.empty:
         return data
 
-    # create a boolean mask: true for non nan and false for nan
-    is_not_nan = data.notna()
-    # generate block ID's
-    block_ids = (~is_not_nan).cumsum()
-    # filter out NaN values from original data
-    non_nan_data = data[is_not_nan]
-    # group the non NaN data by the generated block ID's
-    grouped_blocks = non_nan_data.groupby(block_ids[is_not_nan])
-    # find the ID of the block with the maximum length
-    longest_block_id = grouped_blocks.size().idxmax()
+    # Create a boolean mask where each row is True if all values are non-NaN
+    valid_rows = data.notna().all(axis=1)
 
-    return grouped_blocks.get_group(longest_block_id)
+    # Identify contiguous blocks using cumsum on invalid rows (similar to run-length encoding)
+    block_ids = (~valid_rows).cumsum()
 
-if __name__ == '__main__':
+    # Filter out only valid rows
+    non_nan_data = data[valid_rows]
+
+    # Group valid rows by block IDs
+    grouped = non_nan_data.groupby(block_ids[valid_rows])
+
+    if grouped.ngroups == 0:
+        return data.iloc[0:0]  # Return empty DataFrame with same structure
+
+    # Get the block with the maximum length
+    longest_block_id = grouped.size().idxmax()
+
+    return grouped.get_group(longest_block_id)
+
+
+if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
-                     prog="UK Tidal analysis",
-                     description="Calculate tidal constiuents and RSL from tide gauge data",
-                     epilog="Copyright 2024, Jon Hill"
-                     )
+        prog="UK Tidal analysis",
+        description="Calculate tidal constiuents and RSL from tide gauge data",
+        epilog="Copyright 2024, Jon Hill",
+    )
 
-    parser.add_argument("directory",
-                    help="the directory containing txt files with data")
-    parser.add_argument('-v', '--verbose',
-                    action='store_true',
-                    default=False,
-                    help="Print progress")
+    parser.add_argument(
+        "directory",
+        help="the directory containing txt files with data",
+    )
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", default=False, help="Print progress"
+    )
 
     args = parser.parse_args()
     dirname = args.directory
