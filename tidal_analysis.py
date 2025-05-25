@@ -2,6 +2,9 @@
 
 """
 This script processes and analyses tidal data using python functions
+
+Google amd gemini were used to help write he functions and code within this script
+
 """
 
 # import the modules you need here
@@ -41,7 +44,7 @@ def read_tidal_data(filename):
     # define collumn names
     column_names = ["Cycle","Date", "Time", "Sea Level", "Residual"]
 
-    # lines 43-48 code taken from gemini
+    # lines 48-53 code taken from gemini
     try:
         # read the data using pandas.read_csv.
         data = pd.read_csv(
@@ -77,7 +80,7 @@ def read_tidal_data(filename):
         # required in a test
         data.set_index("Time", inplace=True, drop=False)
 
-        # lines 79-84 code taken from gemini
+        # lines 84-89 code taken from gemini
         return data
     except Exception as e:
         # catch any other general errors that might occur during file reading
@@ -97,7 +100,7 @@ def extract_single_year_remove_mean(year, data):
         pd.DataFrame: A DataFrame containing 'Sea Level' data for the specified year,
                       with its mean subtracted.
     """
-    # lines 99-106 code taken from https://jhill1.github.io/SEPwC.github.io/tides_python.html
+    # lines 104-111 code taken from https://jhill1.github.io/SEPwC.github.io/tides_python.html
     year_string_start = str(year)+"0101"
     year_string_end = str(year)+"1231"
     year_data = data.loc[year_string_start:year_string_end, ["Sea Level"]]
@@ -119,7 +122,7 @@ def extract_section_remove_mean(start, end, data):
     Returns:
         pd.DataFrame: 
     """
-    # lines 121-130 code from gemini
+    # lines 126-135 code from gemini
     # extract specific section of the data
     section = data.loc[start:end, ["Sea Level"]].copy()
 
@@ -173,7 +176,7 @@ def sea_level_rise(data):
                                                significance of the observed trend.
                             Returns (np.nan, np.nan) if there are fewer than 2 valid data points.
    """
-    # lines 175-196 code taken from gemini
+    # lines 180-204 code taken from gemini
     # remove rows where 'Sea Level' is missing
     # convert remianing 'Sea Level' values to floating-point numbers
     sea_level_series_m = data["Sea Level"].dropna().astype(float)
@@ -423,5 +426,5 @@ if __name__ == "__main__":
     dirname = args.directory
     verbose = args.verbose
 
-    # call the main processing function 
+    # call the main processing function
     process_files(dirname)
