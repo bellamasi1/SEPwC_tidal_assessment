@@ -14,7 +14,7 @@ import numpy as np
 from scipy import stats
 import pytz
 import uptide
-from tabulate import tabulate 
+from tabulate import tabulate
 
 def read_tidal_data(filename):
     """
@@ -247,7 +247,7 @@ def format_longest_contiguous_data(data):
     Formats the rows in the DataFrame from the data returned from 
     get_longest_contiguous_data function.
     
-    This method has been generated from Gemini 
+    This method and code has been generated from Gemini 
 
     Args:
         data (pd.DataFrame): The input DataFrame.
@@ -269,7 +269,10 @@ def format_longest_contiguous_data(data):
     start_gb_uk = start_utc.tz_convert(uk_timezone)
     end_gb_uk = end_utc.tz_convert(uk_timezone)
 
-    results = f"{start_gb_uk.strftime('%d/%m/%Y %H:%M:%S %Z%z')} to {end_gb_uk.strftime('%d/%m/%Y %H:%M:%S %Z%z')} ({len(data)})"
+    results = (
+        f"{start_gb_uk.strftime('%d/%m/%Y %H:%M:%S %Z%z')} to "
+        f"{end_gb_uk.strftime('%d/%m/%Y %H:%M:%S %Z%z')} ({len(data)})"
+    )
 
     return results
 
@@ -278,7 +281,7 @@ def get_longest_contiguous_data(data):
     """
     Identifies and returns the longest contiguous block of non-NaN rows in a DataFrame. 
     
-    This method has been generated from Gemini 
+    This method and code has been generated from Gemini 
 
     Args:
         data (pd.DataFrame): The input DataFrame.
@@ -293,22 +296,22 @@ def get_longest_contiguous_data(data):
     if data.empty:
         return data
 
-    # Create a boolean mask where each row is True if all values are non-NaN
+    # create a boolean mask where each row is True if all values are non-NaN
     valid_rows = data.notna().all(axis=1)
 
-    # Identify contiguous blocks using cumsum on invalid rows (similar to run-length encoding)
+    # identify contiguous blocks using cumsum on invalid rows (similar to run-length encoding)
     block_ids = (~valid_rows).cumsum()
 
-    # Filter out only valid rows
+    # filter out only valid rows
     non_nan_data = data[valid_rows]
 
-    # Group valid rows by block IDs
+    # group valid rows by block IDs
     grouped = non_nan_data.groupby(block_ids[valid_rows])
 
     if grouped.ngroups == 0:
         return data.iloc[0:0]  # Return empty DataFrame with same structure
 
-    # Get the block with the maximum length
+    # get the block with the maximum length
     longest_block_id = grouped.size().idxmax()
 
     return grouped.get_group(longest_block_id)
@@ -335,6 +338,70 @@ def valid_directory(path):
     return path
 
 
+def process_files(directory):
+    """
+    Processes tidal data files from a specified directory, performs tidal analysis,
+    and prints the calculated M2 and S2 amplitudes.
+    
+    Most method and code taken and modified from gemini 
+    
+    Args:
+        directory (str): The path to the directory containing the tidal data text files.
+
+    Returns:
+        None: This function prints the analysis summary directly to the console
+              and does not return any value.
+    """
+    # get files using glob that are text files
+    txt_files = glob.glob(directory + "/*.txt")
+    # get the folder name
+    folder_name = os.path.basename(os.path.normpath(directory))
+
+    # check that there is at least 1 file
+    if len(txt_files) > 0:
+        # read the first data file
+        data = read_tidal_data(txt_files[0])
+
+        # skip the first file as this has been processed above
+        for file in txt_files[1:]:
+            next_data = read_tidal_data(file)
+            data = join_data(data, next_data)
+
+        # get longest contiguous period
+        contiguous_data = get_longest_contiguous_data(data)
+
+        # format the longest contiguous period
+        contiguous_results = format_longest_contiguous_data(contiguous_data)
+
+        # calculate M2 and S2 Amplitude
+        constituents = ["M2", "S2"]
+        tz = pytz.timezone("utc")
+        start_datetime = data.index.tz_localize(tz)[0]
+        amp, pha = tidal_analysis(data, constituents, start_datetime)
+
+        # setup headers used by tabulate
+        headers = [
+            "Station Name",
+            "M2 Amplitude",
+            "S2 Amplitude",
+            "Longest contiguous period (data points)",
+        ]
+        # set up data used to display after the header, uses capitalize and
+        # formatting decimal places
+        row = [
+            [
+                folder_name.capitalize(),
+                f"{amp[0]:.3f} m",
+                f"{pha[0]:.3f} m",
+                contiguous_results,
+            ]
+        ]
+        # print the results
+        print(tabulate(row, headers=headers, tablefmt="simple_grid"))
+    else:
+        print("No files found")
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
@@ -355,3 +422,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     dirname = args.directory
     verbose = args.verbose
+
+    # call the main processing function 
+    process_files(dirname)
