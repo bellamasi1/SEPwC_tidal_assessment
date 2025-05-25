@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 """
-This script processes and analyses tidal data using python functions
+This script processes and analyses tidal data.
 
-Google amd gemini were used to help write he functions and code within this script
+Google amd gemini were used to help write the functions and code within this script.
 
 """
 
@@ -21,7 +21,7 @@ from tabulate import tabulate
 
 def read_tidal_data(filename):
     """
-    Reads tidal data from a specified file and returns it as a pandas DataFrame
+    Reads tidal data from a specified file and returns it as a pandas DataFrame.
 
     This function handles parsing mixed data types, cleaning 'Sea Level' entries
     by removing specific characters and invalid values, and setting the 'Time'
@@ -137,8 +137,8 @@ def extract_section_remove_mean(start, end, data):
 
 def join_data(data1, data2):
     """
-    Joins two Pandas DataFrames together
-    Dataframes are concatenated and then sorted by their index
+    Joins two Pandas DataFrames together.
+    Dataframes are concatenated and sorted by their index.
 
     Args:
         data1 (pd.DataFrame): The first DataFrame to join.
@@ -250,13 +250,13 @@ def format_longest_contiguous_data(data):
     Formats the rows in the DataFrame from the data returned from 
     get_longest_contiguous_data function.
     
-    This method and code has been generated from Gemini 
+    This method and code has been generated from Gemini.
 
     Args:
         data (pd.DataFrame): The input DataFrame.
 
     Returns:
-        string: start and end range formatted in Uk date time 
+        string: start and end range formatted in Uk date time.
     """
     start_utc = data.index[0]
     end_utc = data.index[-1]
@@ -284,7 +284,7 @@ def get_longest_contiguous_data(data):
     """
     Identifies and returns the longest contiguous block of non-NaN rows in a DataFrame. 
     
-    This method and code has been generated from Gemini 
+    This method and code has been generated from Gemini.
 
     Args:
         data (pd.DataFrame): The input DataFrame.
@@ -334,7 +334,7 @@ def valid_directory(path):
         str: The original path string if it is a valid directory.
 
     Raises:
-        argparse.ArgumentTypeError: If the path does not exist or is not a directory.
+        argparse.ArgumentTypeError: If the path is not a directory.
     """
     if not os.path.isdir(path):
         raise argparse.ArgumentTypeError(f"'{path}' is not a valid directory")
@@ -346,7 +346,7 @@ def process_files(directory):
     Processes tidal data files from a specified directory, performs tidal analysis,
     and prints the calculated M2 and S2 amplitudes.
     
-    Most method and code taken and modified from gemini 
+    Most method and code taken and modified from gemini.
     
     Args:
         directory (str): The path to the directory containing the tidal data text files.
