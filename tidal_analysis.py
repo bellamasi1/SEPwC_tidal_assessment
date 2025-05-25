@@ -242,6 +242,38 @@ def tidal_analysis(data, constituents, start_datetime):
     return amp, pha
 
 
+def format_longest_contiguous_data(data):
+    """
+    Formats the rows in the DataFrame from the data returned from 
+    get_longest_contiguous_data function.
+    
+    This method has been generated from Gemini 
+
+    Args:
+        data (pd.DataFrame): The input DataFrame.
+
+    Returns:
+        string: start and end range formatted in Uk date time 
+    """
+    start_utc = data.index[0]
+    end_utc = data.index[-1]
+
+    uk_timezone = pytz.timezone("Europe/London")
+
+    if start_utc.tz is None:
+        start_utc = start_utc.tz_localize("UTC")
+
+    if end_utc.tz is None:
+        end_utc = end_utc.tz_localize("UTC")
+
+    start_gb_uk = start_utc.tz_convert(uk_timezone)
+    end_gb_uk = end_utc.tz_convert(uk_timezone)
+
+    results = f"{start_gb_uk.strftime('%d/%m/%Y %H:%M:%S %Z%z')} to {end_gb_uk.strftime('%d/%m/%Y %H:%M:%S %Z%z')} ({len(data)})"
+
+    return results
+
+
 def get_longest_contiguous_data(data):
     """
     Identifies and returns the longest contiguous block of non-NaN rows in a DataFrame. 
