@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-
 """
-This script processes and analyses tidal data.
+    Copyright 2025, Bella Masi.
+    
+    This script processes and analyses tidal data using python functions.
 
-Google amd gemini were used to help write the functions and code within this script.
-
-"""
+    Google amd gemini were used to help write the functions and code within this script.
+    """
 
 # import the modules you need here
 import argparse
