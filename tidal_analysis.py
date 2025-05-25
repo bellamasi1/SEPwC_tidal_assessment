@@ -314,6 +314,27 @@ def get_longest_contiguous_data(data):
     return grouped.get_group(longest_block_id)
 
 
+def valid_directory(path):
+    """
+    Validates if a given path points to an existing directory.
+
+    This function is typically used with `argparse` to validate command-line
+    arguments, ensuring that the supplied path is a legitimate directory.
+
+    Args:
+        path (str): The string path to be checked.
+
+    Returns:
+        str: The original path string if it is a valid directory.
+
+    Raises:
+        argparse.ArgumentTypeError: If the path does not exist or is not a directory.
+    """
+    if not os.path.isdir(path):
+        raise argparse.ArgumentTypeError(f"'{path}' is not a valid directory")
+    return path
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
@@ -324,6 +345,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "directory",
+        type=valid_directory,
         help="the directory containing txt files with data",
     )
     parser.add_argument(
