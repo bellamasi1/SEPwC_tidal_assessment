@@ -6,6 +6,7 @@ import os
 import datetime
 import pandas as pd 
 import numpy as np
+from scipy import stats 
 import pytz
 import uptide 
 
@@ -17,7 +18,7 @@ def read_tidal_data(filename):
     # define collumn names  
     column_names = ["Cycle","Date", "Time", "Sea Level", "Residual"]
 
-    # lines 20-25 code taken from gemini
+    # lines 22-27 code taken from gemini
     try:
         # read the data using pandas.read_csv.
         data = pd.read_csv(
@@ -27,10 +28,6 @@ def read_tidal_data(filename):
             skiprows=list(range(11)),
             sep=r"\s+",
             )
-        na_values=['M', 'N', 'T'] # this converts 'M', 'N', 'T' to NaN.
-        
-        # code from gemini 
-        print(data.head()) 
 
         # convert datetime fields in a pd.datetime and ignore errors
         data["Time"] = pd.to_datetime(
@@ -40,8 +37,9 @@ def read_tidal_data(filename):
         data["Sea Level"] = data["Sea Level"].astype(str)
         # remove base data entries from Sea Level field using regular expression
         data["Sea Level"] = data["Sea Level"].replace(
-            to_replace=r".*[MT]$", value=np.nan, regex=True
+            to_replace=r".*[M]$", value=np.nan, regex=True
         )
+        data["Sea Level"] = data["Sea Level"].replace(r"T$", "", regex=True)
         # remove bad N data enteries
         data["Sea Level"] = data["Sea Level"].replace("-99.0000N", np.nan)
         # convert Sea Level to a float
@@ -52,7 +50,7 @@ def read_tidal_data(filename):
         # required in a test.
         data.set_index("Time", inplace=True, drop=False)     
 
-        # lines 55-58 code taken from gemini 
+        # lines 54-57 code taken from gemini 
         return data                                                                
     except Exception as e:          
         # catch any other general errors that might occur during file reading
@@ -102,9 +100,33 @@ def join_data(data1, data2):
 
 
 def sea_level_rise(data):
+    
+    # lines 105-
+    # remove rows where 'Sea Level' is missing 
+    # convert remianing 'Sea Level' values to floating-point numbers
+    sea_level_series_m = data["Sea Level"].dropna().astype(float)
 
-                                                     
-    return 
+    # check for at least two valid data points 
+    # if not enough data return NaN for both results 
+    if len(sea_level_series_m) < 2:
+        return np.nan, np.nan
+
+    # check if the datetime index of the sea level data has timezone information
+    # if not, localize it to Coordinated Universal Time (UTC) to ensure consistency
+    if sea_level_series_m.index.tzinfo is None:
+        sea_level_series_m.index = sea_level_series_m.index.tz_localize(pytz.utc)
+
+    # define a fixed reference point in time (an "epoch")
+    epoch = datetime.datetime(1900, 1, 1, 0, 0, 0, tzinfo=pytz.utc)
+
+    # calculate the time difference, in days, from the epoch to each data point
+    time_in_days = (sea_level_series_m.index - epoch).total_seconds() / (24 * 3600)
+    
+    # perform a linear regression using the `linregress` function from scipy stats module
+    # only need 'slope' and 'p value' so others are discarded using '_'
+    slope, _, _, p_value, _ = stats.linregress(time_in_days, sea_level_series_m.values)
+
+    return slope, p_value
 
 
 def tidal_analysis(data, constituents, start_datetime):
@@ -136,10 +158,10 @@ def tidal_analysis(data, constituents, start_datetime):
 
 
 def get_longest_contiguous_data(data):
-        
-        return 
+  
+    return
     
-    
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
